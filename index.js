@@ -317,36 +317,36 @@ async function run() {
             }
         });
 
-        // app.get('/company-employees', async (req, res) => {
-        //     try {
-        //         const companyName = req.query.company;
-        //         const employees = await affiliationsCollection.find({ companyName, status: "active" }).toArray();
-        //         const employeeEmails = employees.map(e => e.employeeEmail);
-        //         const users = await usersCollection.find({ email: { $in: employeeEmails } }).project({
-        //             name: 1, email: 1, profileImage: 1, position: 1, dateOfBirth: 1, createdAt: 1
-        //         }).toArray();
-        //         res.send(users);
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to fetch company employees" });
-        //     }
-        // });
+        app.get('/company-employees', async (req, res) => {
+            try {
+                const companyName = req.query.company;
+                const employees = await affiliationsCollection.find({ companyName, status: "active" }).toArray();
+                const employeeEmails = employees.map(e => e.employeeEmail);
+                const users = await usersCollection.find({ email: { $in: employeeEmails } }).project({
+                    name: 1, email: 1, profileImage: 1, position: 1, dateOfBirth: 1, createdAt: 1
+                }).toArray();
+                res.send(users);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to fetch company employees" });
+            }
+        });
 
         // /* ================= REQUESTS ================= */
-        // app.get('/requests', async (req, res) => {
-        //     try {
-        //         const hrEmail = req.query.hrEmail;
-        //         const userEmail = req.query.userEmail;
-        //         const query = {};
-        //         if (hrEmail) query.hrEmail = hrEmail;
-        //         if (userEmail) query.requesterEmail = userEmail;
-        //         const requests = await requestsCollection.find(query).toArray();
-        //         res.send(requests);
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to fetch requests" });
-        //     }
-        // });
+        app.get('/requests', async (req, res) => {
+            try {
+                const hrEmail = req.query.hrEmail;
+                const userEmail = req.query.userEmail;
+                const query = {};
+                if (hrEmail) query.hrEmail = hrEmail;
+                if (userEmail) query.requesterEmail = userEmail;
+                const requests = await requestsCollection.find(query).toArray();
+                res.send(requests);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to fetch requests" });
+            }
+        });
 
         // app.post('/requests', async (req, res) => {
         //     try {
@@ -443,66 +443,66 @@ async function run() {
 
 // ================= PAYMENT RELATED API'S =================
 // server.js
-app.get('/payments', async (req, res) => {
-    try {
-        const email = req.query.email;
-        const payments = await paymentsCollection
-            .find({ hrEmail: email })
-            .sort({ paymentDate: -1 })
-            .toArray();
-        res.send(payments);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({ message: "Failed to fetch payments" });
-    }
-});
+// app.get('/payments', async (req, res) => {
+//     try {
+//         const email = req.query.email;
+//         const payments = await paymentsCollection
+//             .find({ hrEmail: email })
+//             .sort({ paymentDate: -1 })
+//             .toArray();
+//         res.send(payments);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).send({ message: "Failed to fetch payments" });
+//     }
+// });
 
-app.post('/create-checkout-session',  async (req, res) => {
-    try {
-        const paymentInfo = req.body;
-        const amount = parseInt(paymentInfo.cost) * 100;
+// app.post('/create-checkout-session',  async (req, res) => {
+//     try {
+//         const paymentInfo = req.body;
+//         const amount = parseInt(paymentInfo.cost) * 100;
 
-        // Create Stripe checkout session
-        const session = await stripe.checkout.sessions.create({
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'usd',
-                        unit_amount: amount,
-                        product_data: {
-                            name: paymentInfo.parcelName
-                        }
-                    },
-                    quantity: 1,
-                },
-            ],
-            customer_email: paymentInfo.senderEmail,
-            mode: 'payment',
-            metadata: {
-                parcelId: paymentInfo.parcelId
-            },
-            success_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-success`,
-            cancel_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-cancelled`,
-        });
+//         // Create Stripe checkout session
+//         const session = await stripe.checkout.sessions.create({
+//             line_items: [
+//                 {
+//                     price_data: {
+//                         currency: 'usd',
+//                         unit_amount: amount,
+//                         product_data: {
+//                             name: paymentInfo.parcelName
+//                         }
+//                     },
+//                     quantity: 1,
+//                 },
+//             ],
+//             customer_email: paymentInfo.senderEmail,
+//             mode: 'payment',
+//             metadata: {
+//                 parcelId: paymentInfo.parcelId
+//             },
+//             success_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-success`,
+//             cancel_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-cancelled`,
+//         });
 
-        // Store payment info in MongoDB
-        await paymentsCollection.insertOne({
-            hrEmail: paymentInfo.senderEmail,
-            packageName: paymentInfo.parcelName,
-            amount: paymentInfo.cost,
-            parcelId: paymentInfo.parcelId,
-            transactionId: `TXN-${Date.now()}`,
-            status: "pending", // will update to "completed" after actual Stripe payment
-            createdAt: new Date()
-        });
+//         // Store payment info in MongoDB
+//         await paymentsCollection.insertOne({
+//             hrEmail: paymentInfo.senderEmail,
+//             packageName: paymentInfo.parcelName,
+//             amount: paymentInfo.cost,
+//             parcelId: paymentInfo.parcelId,
+//             transactionId: `TXN-${Date.now()}`,
+//             status: "pending", // will update to "completed" after actual Stripe payment
+//             createdAt: new Date()
+//         });
 
-        console.log(session);
-        res.send({ url: session.url });
-    } catch (err) {
-        console.error("Stripe / Payment error:", err);
-        res.status(500).send({ message: "Failed to create checkout session" });
-    }
-});
+//         console.log(session);
+//         res.send({ url: session.url });
+//     } catch (err) {
+//         console.error("Stripe / Payment error:", err);
+//         res.status(500).send({ message: "Failed to create checkout session" });
+//     }
+// });
 
 // Upgrade HR package after successful payment
 // app.patch('/upgrade-package', verifyFirebaseToken, async (req, res) => {
