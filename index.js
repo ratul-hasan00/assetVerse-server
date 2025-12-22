@@ -373,63 +373,63 @@ async function run() {
             }
         });
 
-        // app.put('/requests/:id', async (req, res) => {
-        //     try {
-        //         const id = req.params.id;
-        //         const { requestStatus, processedBy } = req.body;
-        //         const requestItem = await requestsCollection.findOne({ _id: new ObjectId(id) });
-        //         if (!requestItem) return res.status(404).send({ message: "Request not found" });
+        app.put('/requests/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const { requestStatus, processedBy } = req.body;
+                const requestItem = await requestsCollection.findOne({ _id: new ObjectId(id) });
+                if (!requestItem) return res.status(404).send({ message: "Request not found" });
 
-        //         const hr = await usersCollection.findOne({ email: requestItem.hrEmail });
-        //         const alreadyAffiliated = await affiliationsCollection.findOne({
-        //             employeeEmail: requestItem.requesterEmail,
-        //             hrEmail: requestItem.hrEmail
-        //         });
+                const hr = await usersCollection.findOne({ email: requestItem.hrEmail });
+                const alreadyAffiliated = await affiliationsCollection.findOne({
+                    employeeEmail: requestItem.requesterEmail,
+                    hrEmail: requestItem.hrEmail
+                });
 
-        //         if (!alreadyAffiliated && hr.currentEmployees >= hr.packageLimit) {
-        //             return res.status(403).send({ message: "Package limit reached" });
-        //         }
+                if (!alreadyAffiliated && hr.currentEmployees >= hr.packageLimit) {
+                    return res.status(403).send({ message: "Package limit reached" });
+                }
 
-        //         await requestsCollection.updateOne(
-        //             { _id: new ObjectId(id) },
-        //             { $set: { requestStatus, processedBy, approvalDate: new Date() } }
-        //         );
+                await requestsCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { requestStatus, processedBy, approvalDate: new Date() } }
+                );
 
-        //         if (requestStatus === "approved") {
-        //             if (!alreadyAffiliated) {
-        //                 const asset = await assetsCollection.findOne({ _id: new ObjectId(requestItem.assetId) });
+                if (requestStatus === "approved") {
+                    if (!alreadyAffiliated) {
+                        const asset = await assetsCollection.findOne({ _id: new ObjectId(requestItem.assetId) });
 
-        //                 await affiliationsCollection.insertOne({
-        //                     employeeEmail: requestItem.requesterEmail,
-        //                     employeeName: requestItem.requesterName,
-        //                     hrEmail: requestItem.hrEmail,
-        //                     companyName: requestItem.companyName,
-        //                     companyLogo: asset?.companyLogo || "",
-        //                     affiliationDate: new Date(),
-        //                     status: "active"
-        //                 });
+                        await affiliationsCollection.insertOne({
+                            employeeEmail: requestItem.requesterEmail,
+                            employeeName: requestItem.requesterName,
+                            hrEmail: requestItem.hrEmail,
+                            companyName: requestItem.companyName,
+                            companyLogo: asset?.companyLogo || "",
+                            affiliationDate: new Date(),
+                            status: "active"
+                        });
 
-        //                 await usersCollection.updateOne({ email: requestItem.hrEmail }, { $inc: { currentEmployees: 1 } });
-        //             }
+                        await usersCollection.updateOne({ email: requestItem.hrEmail }, { $inc: { currentEmployees: 1 } });
+                    }
 
-        //             await assignedAssetsCollection.insertOne({
-        //                 ...requestItem,
-        //                 assignmentDate: new Date(),
-        //                 status: "assigned"
-        //             });
+                    await assignedAssetsCollection.insertOne({
+                        ...requestItem,
+                        assignmentDate: new Date(),
+                        status: "assigned"
+                    });
 
-        //             await assetsCollection.updateOne(
-        //                 { _id: new ObjectId(requestItem.assetId) },
-        //                 { $inc: { availableQuantity: -1 } }
-        //             );
-        //         }
+                    await assetsCollection.updateOne(
+                        { _id: new ObjectId(requestItem.assetId) },
+                        { $inc: { availableQuantity: -1 } }
+                    );
+                }
 
-        //         res.send({ success: true });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to update request" });
-        //     }
-        // });
+                res.send({ success: true });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to update request" });
+            }
+        });
 
         // /* ================= PACKAGES ================= */
         // app.get('/packages', async (req, res) => {
