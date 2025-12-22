@@ -251,40 +251,40 @@ async function run() {
         });
 
         // /* ================= ASSIGNED ASSETS ================= */
-        // app.get('/assigned-assets', async (req, res) => {
-        //     try {
-        //         const email = req.query.email;
-        //         const result = await assignedAssetsCollection.find({ requesterEmail: email }).toArray();
-        //         res.send(result);
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to fetch assigned assets" });
-        //     }
-        // });
+        app.get('/assigned-assets', async (req, res) => {
+            try {
+                const email = req.query.email;
+                const result = await assignedAssetsCollection.find({ requesterEmail: email }).toArray();
+                res.send(result);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to fetch assigned assets" });
+            }
+        });
 
-        // app.put('/assigned-assets/:id', async (req, res) => {
-        //     try {
-        //         const id = req.params.id;
-        //         const asset = await assignedAssetsCollection.findOne({ _id: new ObjectId(id) });
-        //         if (!asset) return res.status(404).send({ message: "Assigned asset not found" });
-        //         if (asset.status === "returned") return res.status(400).send({ message: "Asset already returned" });
+        app.put('/assigned-assets/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const asset = await assignedAssetsCollection.findOne({ _id: new ObjectId(id) });
+                if (!asset) return res.status(404).send({ message: "Assigned asset not found" });
+                if (asset.status === "returned") return res.status(400).send({ message: "Asset already returned" });
 
-        //         await assignedAssetsCollection.updateOne(
-        //             { _id: new ObjectId(id) },
-        //             { $set: { status: "returned", returnDate: new Date() } }
-        //         );
+                await assignedAssetsCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { status: "returned", returnDate: new Date() } }
+                );
 
-        //         await assetsCollection.updateOne(
-        //             { _id: new ObjectId(asset.assetId) },
-        //             { $inc: { availableQuantity: 1 } }
-        //         );
+                await assetsCollection.updateOne(
+                    { _id: new ObjectId(asset.assetId) },
+                    { $inc: { availableQuantity: 1 } }
+                );
 
-        //         res.send({ message: "Asset returned successfully" });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to return asset" });
-        //     }
-        // });
+                res.send({ message: "Asset returned successfully" });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to return asset" });
+            }
+        });
 
         // /* ================= EMPLOYEE AFFILIATIONS ================= */
         // app.get('/employee-affiliations', async (req, res) => {
