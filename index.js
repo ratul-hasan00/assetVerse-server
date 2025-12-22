@@ -287,35 +287,35 @@ async function run() {
         });
 
         // /* ================= EMPLOYEE AFFILIATIONS ================= */
-        // app.get('/employee-affiliations', async (req, res) => {
-        //     try {
-        //         const email = req.query.email;
-        //         const affiliations = await affiliationsCollection
-        //             .find({ employeeEmail: email, status: "active" })
-        //             .project({ companyName: 1, companyLogo: 1, hrEmail: 1 })
-        //             .toArray();
-        //         res.send(affiliations);
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to fetch affiliations" });
-        //     }
-        // });
+        app.get('/employee-affiliations', async (req, res) => {
+            try {
+                const email = req.query.email;
+                const affiliations = await affiliationsCollection
+                    .find({ employeeEmail: email, status: "active" })
+                    .project({ companyName: 1, companyLogo: 1, hrEmail: 1 })
+                    .toArray();
+                res.send(affiliations);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to fetch affiliations" });
+            }
+        });
 
-        // app.delete('/employee-affiliation', async (req, res) => {
-        //     try {
-        //         const { employeeEmail, companyName, hrEmail } = req.body;
-        //         if (!employeeEmail || !companyName || !hrEmail) return res.status(400).send({ message: "Missing required fields" });
+        app.delete('/employee-affiliation', async (req, res) => {
+            try {
+                const { employeeEmail, companyName, hrEmail } = req.body;
+                if (!employeeEmail || !companyName || !hrEmail) return res.status(400).send({ message: "Missing required fields" });
 
-        //         const result = await affiliationsCollection.deleteOne({ employeeEmail, companyName, hrEmail });
-        //         if (result.deletedCount === 0) return res.status(404).send({ message: "Affiliation not found" });
+                const result = await affiliationsCollection.deleteOne({ employeeEmail, companyName, hrEmail });
+                if (result.deletedCount === 0) return res.status(404).send({ message: "Affiliation not found" });
 
-        //         await usersCollection.updateOne({ email: hrEmail }, { $inc: { currentEmployees: -1 } });
-        //         res.send({ message: "Employee removed from company successfully" });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to remove employee" });
-        //     }
-        // });
+                await usersCollection.updateOne({ email: hrEmail }, { $inc: { currentEmployees: -1 } });
+                res.send({ message: "Employee removed from company successfully" });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to remove employee" });
+            }
+        });
 
         // app.get('/company-employees', async (req, res) => {
         //     try {
