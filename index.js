@@ -97,69 +97,69 @@ async function run() {
 
         /* ================= USERS ================= */
         // Register
-        // app.post('/users', async (req, res) => {
-        //     try {
-        //         const user = req.body;
-        //         if (!user.email || !user.name || !user.role) return res.status(400).send({ message: "Missing required fields" });
+        app.post('/users', async (req, res) => {
+            try {
+                const user = req.body;
+                if (!user.email || !user.name || !user.role) return res.status(400).send({ message: "Missing required fields" });
 
-        //         const exists = await usersCollection.findOne({ email: user.email });
-        //         if (exists) return res.status(400).send({ message: "User already exists" });
+                const exists = await usersCollection.findOne({ email: user.email });
+                if (exists) return res.status(400).send({ message: "User already exists" });
 
-        //         if (user.password) {
-        //             user.password = await bcrypt.hash(user.password, 10);
-        //         }
+                if (user.password) {
+                    user.password = await bcrypt.hash(user.password, 10);
+                }
 
-        //         if (user.role === "hr") {
-        //             user.packageLimit = 5;
-        //             user.currentEmployees = 0;
-        //             user.subscription = "basic";
-        //         }
+                if (user.role === "hr") {
+                    user.packageLimit = 5;
+                    user.currentEmployees = 0;
+                    user.subscription = "basic";
+                }
 
-        //         user.createdAt = new Date();
-        //         user.updatedAt = new Date();
+                user.createdAt = new Date();
+                user.updatedAt = new Date();
 
-        //         const result = await usersCollection.insertOne(user);
-        //         res.send({ message: "User registered successfully", userId: result.insertedId });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: err.message });
-        //     }
-        // });
+                const result = await usersCollection.insertOne(user);
+                res.send({ message: "User registered successfully", userId: result.insertedId });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: err.message });
+            }
+        });
 
         // // Login
-        // app.post('/login', async (req, res) => {
-        //     try {
-        //         const { email, password } = req.body;
-        //         if (!email || !password) return res.status(400).send({ message: "Email and password required" });
+        app.post('/login', async (req, res) => {
+            try {
+                const { email, password } = req.body;
+                if (!email || !password) return res.status(400).send({ message: "Email and password required" });
 
-        //         const user = await usersCollection.findOne({ email });
-        //         if (!user) return res.status(401).send({ message: "Invalid credentials" });
+                const user = await usersCollection.findOne({ email });
+                if (!user) return res.status(401).send({ message: "Invalid credentials" });
 
-        //         const match = await bcrypt.compare(password, user.password);
-        //         if (!match) return res.status(401).send({ message: "Invalid credentials" });
+                const match = await bcrypt.compare(password, user.password);
+                if (!match) return res.status(401).send({ message: "Invalid credentials" });
 
-        //         const token = jwt.sign(
-        //             { email: user.email, role: user.role },
-        //             process.env.JWT_SECRET || "supersecretkey",
-        //             { expiresIn: '1d' }
-        //         );
+                const token = jwt.sign(
+                    { email: user.email, role: user.role },
+                    process.env.JWT_SECRET || "supersecretkey",
+                    { expiresIn: '1d' }
+                );
 
-        //         res.send({
-        //             token,
-        //             user: {
-        //                 name: user.name,
-        //                 email: user.email,
-        //                 role: user.role,
-        //                 companyName: user.companyName || null,
-        //                 companyLogo: user.companyLogo || null,
-        //                 photoURL: user.profileImage || null
-        //             }
-        //         });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Login failed" });
-        //     }
-        // });
+                res.send({
+                    token,
+                    user: {
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        companyName: user.companyName || null,
+                        companyLogo: user.companyLogo || null,
+                        photoURL: user.profileImage || null
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Login failed" });
+            }
+        });
 
         // // Get user by email
         // app.get('/users/:email', async (req, res) => {
