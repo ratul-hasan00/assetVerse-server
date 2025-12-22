@@ -192,63 +192,63 @@ async function run() {
 
         // /* ================= ASSETS ================= */
         // // Get all assets with pagination
-        // app.get('/assets', async (req, res) => {
-        //     try {
-        //         const page = parseInt(req.query.page) || 1;
-        //         const limit = parseInt(req.query.limit) || 10;
-        //         const skip = (page - 1) * limit;
+        app.get('/assets', async (req, res) => {
+            try {
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 10;
+                const skip = (page - 1) * limit;
 
-        //         const assets = await assetsCollection.find().skip(skip).limit(limit).toArray();
-        //         const total = await assetsCollection.countDocuments();
-        //         const totalPages = Math.ceil(total / limit);
+                const assets = await assetsCollection.find().skip(skip).limit(limit).toArray();
+                const total = await assetsCollection.countDocuments();
+                const totalPages = Math.ceil(total / limit);
 
-        //         res.send({ total, page, limit, totalPages, assets });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to fetch assets" });
-        //     }
-        // });
+                res.send({ total, page, limit, totalPages, assets });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to fetch assets" });
+            }
+        });
 
-        // // HR-only: Add asset
-        // app.post('/assets', verifyFirebaseToken, verifyHR, async (req, res) => {
-        //     try {
-        //         const asset = req.body;
-        //         asset.dateAdded = new Date();
-        //         asset.availableQuantity = asset.productQuantity;
-        //         asset.hrEmail = req.user.email;
+        // HR-only: Add asset
+        app.post('/assets', verifyFirebaseToken, verifyHR, async (req, res) => {
+            try {
+                const asset = req.body;
+                asset.dateAdded = new Date();
+                asset.availableQuantity = asset.productQuantity;
+                asset.hrEmail = req.user.email;
 
-        //         const result = await assetsCollection.insertOne(asset);
-        //         res.send({ message: "Asset added successfully", assetId: result.insertedId });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to add asset" });
-        //     }
-        // });
+                const result = await assetsCollection.insertOne(asset);
+                res.send({ message: "Asset added successfully", assetId: result.insertedId });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to add asset" });
+            }
+        });
 
         // // HR-only: Update asset
-        // app.put('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
-        //     try {
-        //         const result = await assetsCollection.updateOne(
-        //             { _id: new ObjectId(req.params.id) },
-        //             { $set: req.body }
-        //         );
-        //         res.send({ message: "Asset updated successfully", modifiedCount: result.modifiedCount });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to update asset" });
-        //     }
-        // });
+        app.put('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
+            try {
+                const result = await assetsCollection.updateOne(
+                    { _id: new ObjectId(req.params.id) },
+                    { $set: req.body }
+                );
+                res.send({ message: "Asset updated successfully", modifiedCount: result.modifiedCount });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to update asset" });
+            }
+        });
 
-        // // HR-only: Delete asset
-        // app.delete('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
-        //     try {
-        //         const result = await assetsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
-        //         res.send({ message: "Asset deleted successfully", deletedCount: result.deletedCount });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to delete asset" });
-        //     }
-        // });
+        // HR-only: Delete asset
+        app.delete('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
+            try {
+                const result = await assetsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+                res.send({ message: "Asset deleted successfully", deletedCount: result.deletedCount });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to delete asset" });
+            }
+        });
 
         // /* ================= ASSIGNED ASSETS ================= */
         // app.get('/assigned-assets', async (req, res) => {
