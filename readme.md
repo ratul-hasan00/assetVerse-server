@@ -2,7 +2,7 @@
 
 **AssetVerse** is a corporate asset management system designed to help companies manage physical assets (laptops, keyboards, chairs, etc.) and track employee asset assignments efficiently. This repository contains the **backend server** built with **Node.js, Cors, Express, MongoDB, Firebase, and Stripe**.
 
-# Live URL - 
+# Live URL - https://asset-verse-server-mocha.vercel.app
 
 ## **Features**
 
