@@ -162,33 +162,33 @@ async function run() {
         });
 
         // // Get user by email
-        // app.get('/users/:email', async (req, res) => {
-        //     const user = await usersCollection.findOne(
-        //         { email: req.params.email },
-        //         { projection: { password: 0 } }
-        //     );
-        //     if (!user) return res.status(404).send({ message: "User not found" });
-        //     res.send(user);
-        // });
+        app.get('/users/:email', async (req, res) => {
+            const user = await usersCollection.findOne(
+                { email: req.params.email },
+                { projection: { password: 0 } }
+            );
+            if (!user) return res.status(404).send({ message: "User not found" });
+            res.send(user);
+        });
 
-        // // Update user info
-        // app.put('/users/:email', async (req, res) => {
-        //     try {
-        //         const { displayName, photoURL } = req.body;
-        //         if (!displayName) return res.status(400).send({ message: "Name is required" });
+        // Update user info
+        app.put('/users/:email', async (req, res) => {
+            try {
+                const { displayName, photoURL } = req.body;
+                if (!displayName) return res.status(400).send({ message: "Name is required" });
 
-        //         const updateData = { name: displayName, updatedAt: new Date() };
-        //         if (photoURL) updateData.profileImage = photoURL;
+                const updateData = { name: displayName, updatedAt: new Date() };
+                if (photoURL) updateData.profileImage = photoURL;
 
-        //         const result = await usersCollection.updateOne({ email: req.params.email }, { $set: updateData });
-        //         if (result.modifiedCount === 0) return res.status(404).send({ message: "User not found or data unchanged" });
+                const result = await usersCollection.updateOne({ email: req.params.email }, { $set: updateData });
+                if (result.modifiedCount === 0) return res.status(404).send({ message: "User not found or data unchanged" });
 
-        //         res.send({ message: "User info updated successfully" });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to update user info" });
-        //     }
-        // });
+                res.send({ message: "User info updated successfully" });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to update user info" });
+            }
+        });
 
         // /* ================= ASSETS ================= */
         // // Get all assets with pagination
