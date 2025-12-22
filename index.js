@@ -97,344 +97,344 @@ async function run() {
 
         /* ================= USERS ================= */
         // Register
-        app.post('/users', async (req, res) => {
-            try {
-                const user = req.body;
-                if (!user.email || !user.name || !user.role) return res.status(400).send({ message: "Missing required fields" });
+        // app.post('/users', async (req, res) => {
+        //     try {
+        //         const user = req.body;
+        //         if (!user.email || !user.name || !user.role) return res.status(400).send({ message: "Missing required fields" });
 
-                const exists = await usersCollection.findOne({ email: user.email });
-                if (exists) return res.status(400).send({ message: "User already exists" });
+        //         const exists = await usersCollection.findOne({ email: user.email });
+        //         if (exists) return res.status(400).send({ message: "User already exists" });
 
-                if (user.password) {
-                    user.password = await bcrypt.hash(user.password, 10);
-                }
+        //         if (user.password) {
+        //             user.password = await bcrypt.hash(user.password, 10);
+        //         }
 
-                if (user.role === "hr") {
-                    user.packageLimit = 5;
-                    user.currentEmployees = 0;
-                    user.subscription = "basic";
-                }
+        //         if (user.role === "hr") {
+        //             user.packageLimit = 5;
+        //             user.currentEmployees = 0;
+        //             user.subscription = "basic";
+        //         }
 
-                user.createdAt = new Date();
-                user.updatedAt = new Date();
+        //         user.createdAt = new Date();
+        //         user.updatedAt = new Date();
 
-                const result = await usersCollection.insertOne(user);
-                res.send({ message: "User registered successfully", userId: result.insertedId });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: err.message });
-            }
-        });
+        //         const result = await usersCollection.insertOne(user);
+        //         res.send({ message: "User registered successfully", userId: result.insertedId });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: err.message });
+        //     }
+        // });
 
-        // Login
-        app.post('/login', async (req, res) => {
-            try {
-                const { email, password } = req.body;
-                if (!email || !password) return res.status(400).send({ message: "Email and password required" });
+        // // Login
+        // app.post('/login', async (req, res) => {
+        //     try {
+        //         const { email, password } = req.body;
+        //         if (!email || !password) return res.status(400).send({ message: "Email and password required" });
 
-                const user = await usersCollection.findOne({ email });
-                if (!user) return res.status(401).send({ message: "Invalid credentials" });
+        //         const user = await usersCollection.findOne({ email });
+        //         if (!user) return res.status(401).send({ message: "Invalid credentials" });
 
-                const match = await bcrypt.compare(password, user.password);
-                if (!match) return res.status(401).send({ message: "Invalid credentials" });
+        //         const match = await bcrypt.compare(password, user.password);
+        //         if (!match) return res.status(401).send({ message: "Invalid credentials" });
 
-                const token = jwt.sign(
-                    { email: user.email, role: user.role },
-                    process.env.JWT_SECRET || "supersecretkey",
-                    { expiresIn: '1d' }
-                );
+        //         const token = jwt.sign(
+        //             { email: user.email, role: user.role },
+        //             process.env.JWT_SECRET || "supersecretkey",
+        //             { expiresIn: '1d' }
+        //         );
 
-                res.send({
-                    token,
-                    user: {
-                        name: user.name,
-                        email: user.email,
-                        role: user.role,
-                        companyName: user.companyName || null,
-                        companyLogo: user.companyLogo || null,
-                        photoURL: user.profileImage || null
-                    }
-                });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Login failed" });
-            }
-        });
+        //         res.send({
+        //             token,
+        //             user: {
+        //                 name: user.name,
+        //                 email: user.email,
+        //                 role: user.role,
+        //                 companyName: user.companyName || null,
+        //                 companyLogo: user.companyLogo || null,
+        //                 photoURL: user.profileImage || null
+        //             }
+        //         });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Login failed" });
+        //     }
+        // });
 
-        // Get user by email
-        app.get('/users/:email', async (req, res) => {
-            const user = await usersCollection.findOne(
-                { email: req.params.email },
-                { projection: { password: 0 } }
-            );
-            if (!user) return res.status(404).send({ message: "User not found" });
-            res.send(user);
-        });
+        // // Get user by email
+        // app.get('/users/:email', async (req, res) => {
+        //     const user = await usersCollection.findOne(
+        //         { email: req.params.email },
+        //         { projection: { password: 0 } }
+        //     );
+        //     if (!user) return res.status(404).send({ message: "User not found" });
+        //     res.send(user);
+        // });
 
-        // Update user info
-        app.put('/users/:email', async (req, res) => {
-            try {
-                const { displayName, photoURL } = req.body;
-                if (!displayName) return res.status(400).send({ message: "Name is required" });
+        // // Update user info
+        // app.put('/users/:email', async (req, res) => {
+        //     try {
+        //         const { displayName, photoURL } = req.body;
+        //         if (!displayName) return res.status(400).send({ message: "Name is required" });
 
-                const updateData = { name: displayName, updatedAt: new Date() };
-                if (photoURL) updateData.profileImage = photoURL;
+        //         const updateData = { name: displayName, updatedAt: new Date() };
+        //         if (photoURL) updateData.profileImage = photoURL;
 
-                const result = await usersCollection.updateOne({ email: req.params.email }, { $set: updateData });
-                if (result.modifiedCount === 0) return res.status(404).send({ message: "User not found or data unchanged" });
+        //         const result = await usersCollection.updateOne({ email: req.params.email }, { $set: updateData });
+        //         if (result.modifiedCount === 0) return res.status(404).send({ message: "User not found or data unchanged" });
 
-                res.send({ message: "User info updated successfully" });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to update user info" });
-            }
-        });
+        //         res.send({ message: "User info updated successfully" });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to update user info" });
+        //     }
+        // });
 
-        /* ================= ASSETS ================= */
-        // Get all assets with pagination
-        app.get('/assets', async (req, res) => {
-            try {
-                const page = parseInt(req.query.page) || 1;
-                const limit = parseInt(req.query.limit) || 10;
-                const skip = (page - 1) * limit;
+        // /* ================= ASSETS ================= */
+        // // Get all assets with pagination
+        // app.get('/assets', async (req, res) => {
+        //     try {
+        //         const page = parseInt(req.query.page) || 1;
+        //         const limit = parseInt(req.query.limit) || 10;
+        //         const skip = (page - 1) * limit;
 
-                const assets = await assetsCollection.find().skip(skip).limit(limit).toArray();
-                const total = await assetsCollection.countDocuments();
-                const totalPages = Math.ceil(total / limit);
+        //         const assets = await assetsCollection.find().skip(skip).limit(limit).toArray();
+        //         const total = await assetsCollection.countDocuments();
+        //         const totalPages = Math.ceil(total / limit);
 
-                res.send({ total, page, limit, totalPages, assets });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to fetch assets" });
-            }
-        });
+        //         res.send({ total, page, limit, totalPages, assets });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to fetch assets" });
+        //     }
+        // });
 
-        // HR-only: Add asset
-        app.post('/assets', verifyFirebaseToken, verifyHR, async (req, res) => {
-            try {
-                const asset = req.body;
-                asset.dateAdded = new Date();
-                asset.availableQuantity = asset.productQuantity;
-                asset.hrEmail = req.user.email;
+        // // HR-only: Add asset
+        // app.post('/assets', verifyFirebaseToken, verifyHR, async (req, res) => {
+        //     try {
+        //         const asset = req.body;
+        //         asset.dateAdded = new Date();
+        //         asset.availableQuantity = asset.productQuantity;
+        //         asset.hrEmail = req.user.email;
 
-                const result = await assetsCollection.insertOne(asset);
-                res.send({ message: "Asset added successfully", assetId: result.insertedId });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to add asset" });
-            }
-        });
+        //         const result = await assetsCollection.insertOne(asset);
+        //         res.send({ message: "Asset added successfully", assetId: result.insertedId });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to add asset" });
+        //     }
+        // });
 
-        // HR-only: Update asset
-        app.put('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
-            try {
-                const result = await assetsCollection.updateOne(
-                    { _id: new ObjectId(req.params.id) },
-                    { $set: req.body }
-                );
-                res.send({ message: "Asset updated successfully", modifiedCount: result.modifiedCount });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to update asset" });
-            }
-        });
+        // // HR-only: Update asset
+        // app.put('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
+        //     try {
+        //         const result = await assetsCollection.updateOne(
+        //             { _id: new ObjectId(req.params.id) },
+        //             { $set: req.body }
+        //         );
+        //         res.send({ message: "Asset updated successfully", modifiedCount: result.modifiedCount });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to update asset" });
+        //     }
+        // });
 
-        // HR-only: Delete asset
-        app.delete('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
-            try {
-                const result = await assetsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
-                res.send({ message: "Asset deleted successfully", deletedCount: result.deletedCount });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to delete asset" });
-            }
-        });
+        // // HR-only: Delete asset
+        // app.delete('/assets/:id', verifyFirebaseToken, verifyHR, async (req, res) => {
+        //     try {
+        //         const result = await assetsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        //         res.send({ message: "Asset deleted successfully", deletedCount: result.deletedCount });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to delete asset" });
+        //     }
+        // });
 
-        /* ================= ASSIGNED ASSETS ================= */
-        app.get('/assigned-assets', async (req, res) => {
-            try {
-                const email = req.query.email;
-                const result = await assignedAssetsCollection.find({ requesterEmail: email }).toArray();
-                res.send(result);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to fetch assigned assets" });
-            }
-        });
+        // /* ================= ASSIGNED ASSETS ================= */
+        // app.get('/assigned-assets', async (req, res) => {
+        //     try {
+        //         const email = req.query.email;
+        //         const result = await assignedAssetsCollection.find({ requesterEmail: email }).toArray();
+        //         res.send(result);
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to fetch assigned assets" });
+        //     }
+        // });
 
-        app.put('/assigned-assets/:id', async (req, res) => {
-            try {
-                const id = req.params.id;
-                const asset = await assignedAssetsCollection.findOne({ _id: new ObjectId(id) });
-                if (!asset) return res.status(404).send({ message: "Assigned asset not found" });
-                if (asset.status === "returned") return res.status(400).send({ message: "Asset already returned" });
+        // app.put('/assigned-assets/:id', async (req, res) => {
+        //     try {
+        //         const id = req.params.id;
+        //         const asset = await assignedAssetsCollection.findOne({ _id: new ObjectId(id) });
+        //         if (!asset) return res.status(404).send({ message: "Assigned asset not found" });
+        //         if (asset.status === "returned") return res.status(400).send({ message: "Asset already returned" });
 
-                await assignedAssetsCollection.updateOne(
-                    { _id: new ObjectId(id) },
-                    { $set: { status: "returned", returnDate: new Date() } }
-                );
+        //         await assignedAssetsCollection.updateOne(
+        //             { _id: new ObjectId(id) },
+        //             { $set: { status: "returned", returnDate: new Date() } }
+        //         );
 
-                await assetsCollection.updateOne(
-                    { _id: new ObjectId(asset.assetId) },
-                    { $inc: { availableQuantity: 1 } }
-                );
+        //         await assetsCollection.updateOne(
+        //             { _id: new ObjectId(asset.assetId) },
+        //             { $inc: { availableQuantity: 1 } }
+        //         );
 
-                res.send({ message: "Asset returned successfully" });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to return asset" });
-            }
-        });
+        //         res.send({ message: "Asset returned successfully" });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to return asset" });
+        //     }
+        // });
 
-        /* ================= EMPLOYEE AFFILIATIONS ================= */
-        app.get('/employee-affiliations', async (req, res) => {
-            try {
-                const email = req.query.email;
-                const affiliations = await affiliationsCollection
-                    .find({ employeeEmail: email, status: "active" })
-                    .project({ companyName: 1, companyLogo: 1, hrEmail: 1 })
-                    .toArray();
-                res.send(affiliations);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to fetch affiliations" });
-            }
-        });
+        // /* ================= EMPLOYEE AFFILIATIONS ================= */
+        // app.get('/employee-affiliations', async (req, res) => {
+        //     try {
+        //         const email = req.query.email;
+        //         const affiliations = await affiliationsCollection
+        //             .find({ employeeEmail: email, status: "active" })
+        //             .project({ companyName: 1, companyLogo: 1, hrEmail: 1 })
+        //             .toArray();
+        //         res.send(affiliations);
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to fetch affiliations" });
+        //     }
+        // });
 
-        app.delete('/employee-affiliation', async (req, res) => {
-            try {
-                const { employeeEmail, companyName, hrEmail } = req.body;
-                if (!employeeEmail || !companyName || !hrEmail) return res.status(400).send({ message: "Missing required fields" });
+        // app.delete('/employee-affiliation', async (req, res) => {
+        //     try {
+        //         const { employeeEmail, companyName, hrEmail } = req.body;
+        //         if (!employeeEmail || !companyName || !hrEmail) return res.status(400).send({ message: "Missing required fields" });
 
-                const result = await affiliationsCollection.deleteOne({ employeeEmail, companyName, hrEmail });
-                if (result.deletedCount === 0) return res.status(404).send({ message: "Affiliation not found" });
+        //         const result = await affiliationsCollection.deleteOne({ employeeEmail, companyName, hrEmail });
+        //         if (result.deletedCount === 0) return res.status(404).send({ message: "Affiliation not found" });
 
-                await usersCollection.updateOne({ email: hrEmail }, { $inc: { currentEmployees: -1 } });
-                res.send({ message: "Employee removed from company successfully" });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to remove employee" });
-            }
-        });
+        //         await usersCollection.updateOne({ email: hrEmail }, { $inc: { currentEmployees: -1 } });
+        //         res.send({ message: "Employee removed from company successfully" });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to remove employee" });
+        //     }
+        // });
 
-        app.get('/company-employees', async (req, res) => {
-            try {
-                const companyName = req.query.company;
-                const employees = await affiliationsCollection.find({ companyName, status: "active" }).toArray();
-                const employeeEmails = employees.map(e => e.employeeEmail);
-                const users = await usersCollection.find({ email: { $in: employeeEmails } }).project({
-                    name: 1, email: 1, profileImage: 1, position: 1, dateOfBirth: 1, createdAt: 1
-                }).toArray();
-                res.send(users);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to fetch company employees" });
-            }
-        });
+        // app.get('/company-employees', async (req, res) => {
+        //     try {
+        //         const companyName = req.query.company;
+        //         const employees = await affiliationsCollection.find({ companyName, status: "active" }).toArray();
+        //         const employeeEmails = employees.map(e => e.employeeEmail);
+        //         const users = await usersCollection.find({ email: { $in: employeeEmails } }).project({
+        //             name: 1, email: 1, profileImage: 1, position: 1, dateOfBirth: 1, createdAt: 1
+        //         }).toArray();
+        //         res.send(users);
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to fetch company employees" });
+        //     }
+        // });
 
-        /* ================= REQUESTS ================= */
-        app.get('/requests', async (req, res) => {
-            try {
-                const hrEmail = req.query.hrEmail;
-                const userEmail = req.query.userEmail;
-                const query = {};
-                if (hrEmail) query.hrEmail = hrEmail;
-                if (userEmail) query.requesterEmail = userEmail;
-                const requests = await requestsCollection.find(query).toArray();
-                res.send(requests);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to fetch requests" });
-            }
-        });
+        // /* ================= REQUESTS ================= */
+        // app.get('/requests', async (req, res) => {
+        //     try {
+        //         const hrEmail = req.query.hrEmail;
+        //         const userEmail = req.query.userEmail;
+        //         const query = {};
+        //         if (hrEmail) query.hrEmail = hrEmail;
+        //         if (userEmail) query.requesterEmail = userEmail;
+        //         const requests = await requestsCollection.find(query).toArray();
+        //         res.send(requests);
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to fetch requests" });
+        //     }
+        // });
 
-        app.post('/requests', async (req, res) => {
-            try {
-                const request = req.body;
-                if (!request.assetId || !request.assetName || !request.requesterEmail || !request.hrEmail)
-                    return res.status(400).send({ message: "Missing required fields" });
+        // app.post('/requests', async (req, res) => {
+        //     try {
+        //         const request = req.body;
+        //         if (!request.assetId || !request.assetName || !request.requesterEmail || !request.hrEmail)
+        //             return res.status(400).send({ message: "Missing required fields" });
 
-                request.requestDate = new Date();
-                request.requestStatus = "pending";
+        //         request.requestDate = new Date();
+        //         request.requestStatus = "pending";
 
-                const existingRequest = await requestsCollection.findOne({
-                    assetId: request.assetId,
-                    requesterEmail: request.requesterEmail,
-                    requestStatus: "pending"
-                });
+        //         const existingRequest = await requestsCollection.findOne({
+        //             assetId: request.assetId,
+        //             requesterEmail: request.requesterEmail,
+        //             requestStatus: "pending"
+        //         });
 
-                if (existingRequest) return res.status(400).send({ message: "You already have a pending request for this asset" });
+        //         if (existingRequest) return res.status(400).send({ message: "You already have a pending request for this asset" });
 
-                const result = await requestsCollection.insertOne(request);
-                res.send({ success: true, insertedId: result.insertedId });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to create request" });
-            }
-        });
+        //         const result = await requestsCollection.insertOne(request);
+        //         res.send({ success: true, insertedId: result.insertedId });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to create request" });
+        //     }
+        // });
 
-        app.put('/requests/:id', async (req, res) => {
-            try {
-                const id = req.params.id;
-                const { requestStatus, processedBy } = req.body;
-                const requestItem = await requestsCollection.findOne({ _id: new ObjectId(id) });
-                if (!requestItem) return res.status(404).send({ message: "Request not found" });
+        // app.put('/requests/:id', async (req, res) => {
+        //     try {
+        //         const id = req.params.id;
+        //         const { requestStatus, processedBy } = req.body;
+        //         const requestItem = await requestsCollection.findOne({ _id: new ObjectId(id) });
+        //         if (!requestItem) return res.status(404).send({ message: "Request not found" });
 
-                const hr = await usersCollection.findOne({ email: requestItem.hrEmail });
-                const alreadyAffiliated = await affiliationsCollection.findOne({
-                    employeeEmail: requestItem.requesterEmail,
-                    hrEmail: requestItem.hrEmail
-                });
+        //         const hr = await usersCollection.findOne({ email: requestItem.hrEmail });
+        //         const alreadyAffiliated = await affiliationsCollection.findOne({
+        //             employeeEmail: requestItem.requesterEmail,
+        //             hrEmail: requestItem.hrEmail
+        //         });
 
-                if (!alreadyAffiliated && hr.currentEmployees >= hr.packageLimit) {
-                    return res.status(403).send({ message: "Package limit reached" });
-                }
+        //         if (!alreadyAffiliated && hr.currentEmployees >= hr.packageLimit) {
+        //             return res.status(403).send({ message: "Package limit reached" });
+        //         }
 
-                await requestsCollection.updateOne(
-                    { _id: new ObjectId(id) },
-                    { $set: { requestStatus, processedBy, approvalDate: new Date() } }
-                );
+        //         await requestsCollection.updateOne(
+        //             { _id: new ObjectId(id) },
+        //             { $set: { requestStatus, processedBy, approvalDate: new Date() } }
+        //         );
 
-                if (requestStatus === "approved") {
-                    if (!alreadyAffiliated) {
-                        const asset = await assetsCollection.findOne({ _id: new ObjectId(requestItem.assetId) });
+        //         if (requestStatus === "approved") {
+        //             if (!alreadyAffiliated) {
+        //                 const asset = await assetsCollection.findOne({ _id: new ObjectId(requestItem.assetId) });
 
-                        await affiliationsCollection.insertOne({
-                            employeeEmail: requestItem.requesterEmail,
-                            employeeName: requestItem.requesterName,
-                            hrEmail: requestItem.hrEmail,
-                            companyName: requestItem.companyName,
-                            companyLogo: asset?.companyLogo || "",
-                            affiliationDate: new Date(),
-                            status: "active"
-                        });
+        //                 await affiliationsCollection.insertOne({
+        //                     employeeEmail: requestItem.requesterEmail,
+        //                     employeeName: requestItem.requesterName,
+        //                     hrEmail: requestItem.hrEmail,
+        //                     companyName: requestItem.companyName,
+        //                     companyLogo: asset?.companyLogo || "",
+        //                     affiliationDate: new Date(),
+        //                     status: "active"
+        //                 });
 
-                        await usersCollection.updateOne({ email: requestItem.hrEmail }, { $inc: { currentEmployees: 1 } });
-                    }
+        //                 await usersCollection.updateOne({ email: requestItem.hrEmail }, { $inc: { currentEmployees: 1 } });
+        //             }
 
-                    await assignedAssetsCollection.insertOne({
-                        ...requestItem,
-                        assignmentDate: new Date(),
-                        status: "assigned"
-                    });
+        //             await assignedAssetsCollection.insertOne({
+        //                 ...requestItem,
+        //                 assignmentDate: new Date(),
+        //                 status: "assigned"
+        //             });
 
-                    await assetsCollection.updateOne(
-                        { _id: new ObjectId(requestItem.assetId) },
-                        { $inc: { availableQuantity: -1 } }
-                    );
-                }
+        //             await assetsCollection.updateOne(
+        //                 { _id: new ObjectId(requestItem.assetId) },
+        //                 { $inc: { availableQuantity: -1 } }
+        //             );
+        //         }
 
-                res.send({ success: true });
-            } catch (err) {
-                console.error(err);
-                res.status(500).send({ message: "Failed to update request" });
-            }
-        });
+        //         res.send({ success: true });
+        //     } catch (err) {
+        //         console.error(err);
+        //         res.status(500).send({ message: "Failed to update request" });
+        //     }
+        // });
 
-        /* ================= PACKAGES ================= */
-        app.get('/packages', async (req, res) => {
-            res.send(await packagesCollection.find().toArray());
-        });
+        // /* ================= PACKAGES ================= */
+        // app.get('/packages', async (req, res) => {
+        //     res.send(await packagesCollection.find().toArray());
+        // });
 
     } catch (err) {
         console.error("MongoDB connection failed", err);
