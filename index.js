@@ -432,9 +432,9 @@ async function run() {
         });
 
         // /* ================= PACKAGES ================= */
-        // app.get('/packages', async (req, res) => {
-        //     res.send(await packagesCollection.find().toArray());
-        // });
+        app.get('/packages', async (req, res) => {
+            res.send(await packagesCollection.find().toArray());
+        });
 
     } catch (err) {
         console.error("MongoDB connection failed", err);
@@ -442,106 +442,105 @@ async function run() {
 }
 
 // ================= PAYMENT RELATED API'S =================
-// server.js
-// app.get('/payments', async (req, res) => {
-//     try {
-//         const email = req.query.email;
-//         const payments = await paymentsCollection
-//             .find({ hrEmail: email })
-//             .sort({ paymentDate: -1 })
-//             .toArray();
-//         res.send(payments);
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).send({ message: "Failed to fetch payments" });
-//     }
-// });
 
-// app.post('/create-checkout-session',  async (req, res) => {
-//     try {
-//         const paymentInfo = req.body;
-//         const amount = parseInt(paymentInfo.cost) * 100;
+app.get('/payments', async (req, res) => {
+    try {
+        const email = req.query.email;
+        const payments = await paymentsCollection
+            .find({ hrEmail: email })
+            .sort({ paymentDate: -1 })
+            .toArray();
+        res.send(payments);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ message: "Failed to fetch payments" });
+    }
+});
 
-//         // Create Stripe checkout session
-//         const session = await stripe.checkout.sessions.create({
-//             line_items: [
-//                 {
-//                     price_data: {
-//                         currency: 'usd',
-//                         unit_amount: amount,
-//                         product_data: {
-//                             name: paymentInfo.parcelName
-//                         }
-//                     },
-//                     quantity: 1,
-//                 },
-//             ],
-//             customer_email: paymentInfo.senderEmail,
-//             mode: 'payment',
-//             metadata: {
-//                 parcelId: paymentInfo.parcelId
-//             },
-//             success_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-success`,
-//             cancel_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-cancelled`,
-//         });
+app.post('/create-checkout-session', async (req, res) => {
+    try {
+        const paymentInfo = req.body;
+        const amount = parseInt(paymentInfo.cost) * 100;
 
-//         // Store payment info in MongoDB
-//         await paymentsCollection.insertOne({
-//             hrEmail: paymentInfo.senderEmail,
-//             packageName: paymentInfo.parcelName,
-//             amount: paymentInfo.cost,
-//             parcelId: paymentInfo.parcelId,
-//             transactionId: `TXN-${Date.now()}`,
-//             status: "pending", // will update to "completed" after actual Stripe payment
-//             createdAt: new Date()
-//         });
+        // Create Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        unit_amount: amount,
+                        product_data: {
+                            name: paymentInfo.parcelName
+                        }
+                    },
+                    quantity: 1,
+                },
+            ],
+            customer_email: paymentInfo.senderEmail,
+            mode: 'payment',
+            metadata: {
+                parcelId: paymentInfo.parcelId
+            },
+            success_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-success`,
+            cancel_url: `${process.env.SITE_DOMAIN}/dashboard/upgrade-cancelled`,
+        });
 
-//         console.log(session);
-//         res.send({ url: session.url });
-//     } catch (err) {
-//         console.error("Stripe / Payment error:", err);
-//         res.status(500).send({ message: "Failed to create checkout session" });
-//     }
-// });
+        // Store payment info in MongoDB
+        await paymentsCollection.insertOne({
+            hrEmail: paymentInfo.senderEmail,
+            packageName: paymentInfo.parcelName,
+            amount: paymentInfo.cost,
+            parcelId: paymentInfo.parcelId,
+            transactionId: `TXN-${Date.now()}`,
+            status: "pending", // will update to "completed" after actual Stripe payment
+            createdAt: new Date()
+        });
 
-// Upgrade HR package after successful payment
-// app.patch('/upgrade-package', verifyFirebaseToken, async (req, res) => {
-//     try {
-//         const { packageName, employeeLimit, amount } = req.body;
-//         const hrEmail = req.token_email;
+        console.log(session);
+        res.send({ url: session.url });
+    } catch (err) {
+        console.error("Stripe / Payment error:", err);
+        res.status(500).send({ message: "Failed to create checkout session" });
+    }
+});
 
-//         if (!packageName || !employeeLimit || !amount) {
-//             return res.status(400).send({ message: "Missing package info" });
-//         }
+app.patch('/upgrade-package', verifyFirebaseToken, async (req, res) => {
+    try {
+        const { packageName, employeeLimit, amount } = req.body;
+        const hrEmail = req.token_email;
 
-//         await usersCollection.updateOne(
-//             { email: hrEmail },
-//             {
-//                 $set: {
-//                     subscription: packageName,
-//                     packageLimit: employeeLimit,
-//                     updatedAt: new Date()
-//                 }
-//             }
-//         );
+        if (!packageName || !employeeLimit || !amount) {
+            return res.status(400).send({ message: "Missing package info" });
+        }
 
-//         await paymentsCollection.insertOne({
-//             hrEmail,
-//             packageName,
-//             employeeLimit,
-//             amount,
-//             transactionId: `TXN-${Date.now()}`,
-//             paymentDate: new Date(),
-//             status: "completed"
-//         });
+        await usersCollection.updateOne(
+            { email: hrEmail },
+            {
+                $set: {
+                    subscription: packageName,
+                    packageLimit: employeeLimit,
+                    updatedAt: new Date()
+                }
+            }
+        );
 
-//         res.send({ success: true });
+        await paymentsCollection.insertOne({
+            hrEmail,
+            packageName,
+            employeeLimit,
+            amount,
+            transactionId: `TXN-${Date.now()}`,
+            paymentDate: new Date(),
+            status: "completed"
+        });
 
-//     } catch (error) {
-//         console.error("Upgrade error:", error);
-//         res.status(500).send({ message: "Failed to upgrade package" });
-//     }
-// });
+        res.send({ success: true });
+
+    } catch (error) {
+        console.error("Upgrade error:", error);
+        res.status(500).send({ message: "Failed to upgrade package" });
+    }
+});
 
 
 
