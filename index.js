@@ -348,30 +348,30 @@ async function run() {
             }
         });
 
-        // app.post('/requests', async (req, res) => {
-        //     try {
-        //         const request = req.body;
-        //         if (!request.assetId || !request.assetName || !request.requesterEmail || !request.hrEmail)
-        //             return res.status(400).send({ message: "Missing required fields" });
+        app.post('/requests', async (req, res) => {
+            try {
+                const request = req.body;
+                if (!request.assetId || !request.assetName || !request.requesterEmail || !request.hrEmail)
+                    return res.status(400).send({ message: "Missing required fields" });
 
-        //         request.requestDate = new Date();
-        //         request.requestStatus = "pending";
+                request.requestDate = new Date();
+                request.requestStatus = "pending";
 
-        //         const existingRequest = await requestsCollection.findOne({
-        //             assetId: request.assetId,
-        //             requesterEmail: request.requesterEmail,
-        //             requestStatus: "pending"
-        //         });
+                const existingRequest = await requestsCollection.findOne({
+                    assetId: request.assetId,
+                    requesterEmail: request.requesterEmail,
+                    requestStatus: "pending"
+                });
 
-        //         if (existingRequest) return res.status(400).send({ message: "You already have a pending request for this asset" });
+                if (existingRequest) return res.status(400).send({ message: "You already have a pending request for this asset" });
 
-        //         const result = await requestsCollection.insertOne(request);
-        //         res.send({ success: true, insertedId: result.insertedId });
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.status(500).send({ message: "Failed to create request" });
-        //     }
-        // });
+                const result = await requestsCollection.insertOne(request);
+                res.send({ success: true, insertedId: result.insertedId });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send({ message: "Failed to create request" });
+            }
+        });
 
         // app.put('/requests/:id', async (req, res) => {
         //     try {
