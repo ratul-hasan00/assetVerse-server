@@ -19,10 +19,21 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
+const allowedOrigins = [
+  "https://asset-verse-d5365.web.app", // your deployed frontend
+  "http://localhost:5173"               // optional: local dev
+];
+
 app.use(cors({
-    origin: process.env.SITE_DOMAIN,
-    credentials: true
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
 }));
+
 
 app.use(express.json());
 
